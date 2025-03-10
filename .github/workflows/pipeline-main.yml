@@ -30,17 +30,9 @@ jobs:
           echo "Running Job 3"
           exit 1  # Simulating failure
 
-  fail_job:
-    needs: [job2, job3]
-    if: ${{ failure() }}  # Runs only if both Job2 and Job3 fail
-    runs-on: ubuntu-latest
-    steps:
-      - name: Fail Workflow
-        run: exit 1
-
   job4:
     needs: [job2, job3]
-    if: ${{ success() }}  # Runs only if at least one of Job2 or Job3 passes
+    if: ${{ needs.job2.result == 'success' || needs.job3.result == 'success' }}  # Run only if at least one passes
     runs-on: ubuntu-latest
     steps:
       - name: Step 4
