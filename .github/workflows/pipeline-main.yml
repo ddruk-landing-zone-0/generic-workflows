@@ -1,0 +1,47 @@
+name: Multi-Job Workflow
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  job1:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Step 1
+        run: echo "Running Job 1"
+
+  job2:
+    needs: job1
+    runs-on: ubuntu-latest
+    steps:
+      - name: Step 2
+        run: |
+          echo "Running Job 2"
+          exit 1  # Simulate failure
+
+  job3:
+    needs: job1
+    runs-on: ubuntu-latest
+    steps:
+      - name: Step 3
+        run: |
+          echo "Running Job 3"
+          exit 1  # Simulate failure
+
+  fail_job:
+    needs: [job2, job3]
+    if: ${{ failure() }}  # Runs only if both Job2 and Job3 fail
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail Workflow
+        run: exit 1
+
+  job4:
+    needs: [job2, job3]
+    if: ${{ success() }}  # Runs only if at least one of Job2 or Job3 passes
+    runs-on: ubuntu-latest
+    steps:
+      - name: Step 4
+        run: echo "Running Job 4"
