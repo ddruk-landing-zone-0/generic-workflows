@@ -30,18 +30,17 @@ jobs:
           echo "Running Job 3"
           exit 1  # Simulate failure
 
-  fail_job:
-    needs: [job2, job3]
-    if: ${{ failure() }}  # Runs only if both Job2 and Job3 fail
-    runs-on: ubuntu-latest
-    steps:
-      - name: Fail Workflow
-        run: exit 1
-
   job4:
     needs: [job2, job3]
-    if: ${{ success() }}  # Runs only if at least one of Job2 or Job3 passes
+    if: always()  # Ensure Job4 always runs, even if Job2 and Job3 fail
     runs-on: ubuntu-latest
     steps:
-      - name: Step 4
+      - name: Check if Job2 and Job3 both failed
+        run: |
+          if [[ "${{ needs.job2.result }}" == "failure" && "${{ needs.job3.result }}" == "failure" ]]; then
+            echo "Both Job2 and Job3 failed. Failing Job4 to prevent merge."
+            exit 1
+          fi
+          
+      - name: Run Job4
         run: echo "Running Job 4"
