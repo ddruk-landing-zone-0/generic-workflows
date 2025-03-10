@@ -19,7 +19,7 @@ jobs:
       - name: Step 2
         run: |
           echo "Running Job 2"
-          exit 1  # Simulating failure
+          exit 1  # Simulate failure
 
   job3:
     needs: job1
@@ -28,12 +28,18 @@ jobs:
       - name: Step 3
         run: |
           echo "Running Job 3"
-          exit 1  # Simulating failure
+          exit 1  # Simulate failure
 
   job4:
     needs: [job2, job3]
-    if: ${{ needs.job2.result == 'success' || needs.job3.result == 'success' }}  # Run only if at least one passes
     runs-on: ubuntu-latest
     steps:
-      - name: Step 4
+      - name: Check if Job2 and Job3 both failed
+        run: |
+          if [[ "${{ needs.job2.result }}" == "failure" && "${{ needs.job3.result }}" == "failure" ]]; then
+            echo "Both Job2 and Job3 failed. Failing Job4 to prevent merge."
+            exit 1
+          fi
+
+      - name: Run Job4
         run: echo "Running Job 4"
